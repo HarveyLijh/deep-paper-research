@@ -173,3 +173,28 @@ class DatabaseManager:
                 session.rollback()
                 logger.error(f"Failed to save paper concepts: {str(e)}")
                 raise
+
+    def get_papers_above_threshold(self, threshold: float) -> List[Paper]:
+        """Get papers with support level above threshold"""
+        with self.get_session() as session:
+            return session.query(Paper).join(
+                PaperEvaluation,
+                Paper.paper_id == PaperEvaluation.paper_id
+            ).filter(
+                PaperEvaluation.support_level >= threshold
+            ).all()
+
+    def update_paper_metadata(self, paper_id: str, updates: Dict[str, Any]) -> None:
+        """Update paper with additional metadata"""
+        with self.get_session() as session:
+            try:
+                paper = session.query(Paper).filter(Paper.paper_id == paper_id).first()
+                if paper:
+                    for key, value in updates.items():
+                        setattr(paper, key, value)
+                    session.commit()
+                    logger.info(f"Updated metadata for paper {paper_id}")
+            except Exception as e:
+                session.rollback()
+                logger.error(f"Failed to update paper metadata: {str(e)}")
+                raise

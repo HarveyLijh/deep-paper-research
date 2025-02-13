@@ -274,6 +274,12 @@ def parse_args():
         help="Minimum support level threshold for paper filtering (0-10)",
     )
 
+    parser.add_argument(
+        "--enrich-papers",
+        action="store_true",
+        help="Enrich existing papers with additional metadata"
+    )
+
     return parser.parse_args()
 
 
@@ -331,6 +337,27 @@ def main() -> None:
             logger.info(f"Papers filtered out: {stats['filtered_out']}")
             logger.info(f"Errors encountered: {stats['errors']}")
 
+            sys.exit(0)
+
+        if args.enrich_papers:
+            from src.services.paper_enrichment import PaperEnrichmentService
+            
+            logger.info("Starting paper enrichment process...")
+            
+            enrichment_service = PaperEnrichmentService(
+                semantic_scholar_client=clients["semantic_scholar"],
+                db_manager=clients["db"],
+                support_threshold=args.support_threshold
+            )
+            
+            stats = enrichment_service.enrich_papers()
+            
+            logger.info("\nPaper Enrichment Complete")
+            logger.info("=" * 40)
+            logger.info(f"Papers processed: {stats['processed']}")
+            logger.info(f"Papers enriched: {stats['enriched']}")
+            logger.info(f"Errors encountered: {stats['errors']}")
+            
             sys.exit(0)
 
         # Load topics

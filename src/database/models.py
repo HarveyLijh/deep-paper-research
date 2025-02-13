@@ -1,6 +1,6 @@
 # src/database/models.py
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Table
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Table, Boolean
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 
@@ -39,6 +39,13 @@ class Paper(Base):
         default=func.now(),
         onupdate=func.now(),
     )
+
+    # Add new fields
+    venue = Column(String)
+    journal = Column(String)
+    url = Column(String)
+    is_open_access = Column(Boolean, default=False)
+    pdf_url = Column(String)
 
     # Relationships
     references = relationship(

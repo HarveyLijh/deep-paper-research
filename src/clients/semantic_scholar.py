@@ -60,7 +60,16 @@ class SemanticScholarClient:
             response = self._handle_request(
                 self.client.search_paper,
                 query,
-                limit=limit
+                limit=limit,
+                fields=[
+                    'paperId',
+                    'title',
+                    'abstract',
+                    'authors',
+                    'year',
+                    'citationCount',
+                    'referenceCount'
+                ]
             )
             
             logger.info(f"Received responses {response}\n{str(response)}")
@@ -103,7 +112,26 @@ class SemanticScholarClient:
     def get_paper_details(self, paper_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed paper information"""
         logger.info(f"Fetching details for paper: {paper_id}")
-        paper = self._handle_request(self.client.get_paper, paper_id)
+        paper = self._handle_request(
+            self.client.get_paper,
+            paper_id,
+            fields=[
+                'paperId',
+                'title',
+                'abstract',
+                'authors',
+                'year',
+                'citationCount',
+                'referenceCount',
+                'references',
+                'citations',
+                'venue',
+                'journal',
+                'url',
+                'isOpenAccess',
+                'openAccessPdf'
+            ]
+        )
         
         if not paper:
             return None
@@ -121,6 +149,11 @@ class SemanticScholarClient:
             'reference_count': paper.referenceCount,
             'references': [ref.paperId for ref in paper.references or []],
             'citations': [cit.paperId for cit in paper.citations or []],
+            'venue': paper.venue,
+            'journal': getattr(paper.journal, 'name', None) if paper.journal else None,
+            'url': paper.url,
+            'isOpenAccess': paper.isOpenAccess,
+            'openAccessPdf': paper.openAccessPdf.get('url') if paper.openAccessPdf else None
         }
 
     @rate_limit(calls=100, period=60)
